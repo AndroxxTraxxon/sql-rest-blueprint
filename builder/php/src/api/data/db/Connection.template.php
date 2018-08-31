@@ -6,11 +6,12 @@ class Connection{
   private static $servername = "db";
   private static $username = "root";
   private static $password = "test";
-  private static $dbname = "bravo";
+  private static $dbname = "{{$api_name}}";
+  private static $dbtype = "{{$db_type}}";
 
   public static function getConnection(){
     $conn = new PDO(
-      'mysql:host='.self::$servername.';'.
+      self::$dbtype.':host='.self::$servername.';'.
       'dbname='.self::$dbname,
       self::$username,
       self::$password
