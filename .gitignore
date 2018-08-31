@@ -1,0 +1,8 @@
+
+
+### VSCode workspace settings ###
+.vscode
+
+### Python Bytecode ###
+
+*.pyc
