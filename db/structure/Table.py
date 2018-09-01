@@ -34,7 +34,7 @@ class Table:
                 self.primaryKey.append(column)
 
     def __str__(self):
-        output = "Table '{0}': [\n".format(self.name + " (Relational)" if self.isRelationalTable else "")
+        output = "Table '{0}': [\n".format(self.name + (" (Relational)" if self.isRelationalTable else ""))
         for column in self.columns:
             output += "        " + str(column) + "\n"
         return output + "    ]"

@@ -1,8 +1,8 @@
 <?php
 namespace {{$api_name}}\api\resources;
-use bravo\api\business\security\Secure{{$table_name_caps}};
-use bravo\api\data\models\{{$table_name_single_caps}};
-use bravo\api\resources\Response;
+use {{$api_name}}\api\business\security\Secure{{$table_name_caps}};
+use {{$api_name}}\api\data\models\{{$table_name_single_caps}};
+use {{$api_name}}\api\resources\Response;
 use \stdClass;
 
 

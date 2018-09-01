@@ -109,7 +109,7 @@ class {{$table_name_caps}}DAO{
     public function update{{$table_name_single_caps}}(string $id, {{$table_name_single_caps}} ${{$table_name_single}}){
         
         $sql = "UPDATE {{$table_name}} SET
-            {{$non_primary_columns_commas + " = ?"}}
+            {{$non_primary_columns_commas_questions}}
         WHERE {{$primary_key}} = ?";
         
         $values = [

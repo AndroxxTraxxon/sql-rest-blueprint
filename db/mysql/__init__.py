@@ -26,7 +26,7 @@ class MySQLParser:
             db_name = cls.db_name_regex.findall(text)[0]
             tables = cls.table_regex.findall(text)
             table_names = list()
-            db = Database(db_name)
+            db = Database(db_name, dbType='mysql')
             for table in tables:
                 name, content = table
                 tbl = Table(name)
