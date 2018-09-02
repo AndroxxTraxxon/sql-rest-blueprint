@@ -143,7 +143,7 @@ def buildFolderStructure(config, dbModel):
             
             relpath = os.path.relpath(os.path.join(root, name), config['templateRoot']).split(os.path.sep)
             for i in range(len(relpath)):
-                if var_pattern.match(relpath[i]) is not None:
+                if var_pattern.search(relpath[i]) is not None:
                     relpath[i] = getTableFileBuilder(config['lang']).processReplacement(config, dbModel, relpath[i])
             relpath = os.path.join(*relpath)
             if not os.path.isdir(os.path.join(config['destAbsPath'],relpath)):
@@ -155,18 +155,17 @@ def buildFolderStructure(config, dbModel):
             """ If the path has variables, then pre-process the variable names. """
             relpath = os.path.relpath(os.path.join(root, name), config['templateRoot']).split(os.path.sep)
             for i in range(len(relpath)-1): # -1 so that the file name is not included. this will be processed later.
-                if var_pattern.match(relpath[i]) is not None:
+                if var_pattern.search(relpath[i]) is not None:
                     relpath[i] = getTableFileBuilder(
                         config['lang']
                     ).processReplacement(
                         config, dbModel, relpath[i])
-            relpath = os.path.join(*relpath)
-            if os.path.exists(os.path.join(config['destAbsPath'],relpath)):
+            if os.path.exists(os.path.join(config['destAbsPath'], *relpath)):
                 print(
                     "Overwriting file `{0}`".format(
                         os.path.join(
                             config['destAbsPath'],
-                            relpath)))
+                            *relpath)))
             
             """ Figure out what kind of file this is. """
             fileEnding = config['fileExtensions'][config['lang']]
@@ -178,8 +177,8 @@ def buildFolderStructure(config, dbModel):
                 Not templated at all. 
                 Just need to be copied (not ending in `.template.*`)
                 """
-                shutil.copy(os.path.join(root, name), config['destAbsPath']+'/'+relpath)
-            elif tableNameVarPattern.match(name) is None :
+                shutil.copy(os.path.join(root, name), os.path.join(config['destAbsPath'],*relpath))
+            elif tableNameVarPattern.search(name) is None :
                 """ 
                 API-specific files, not specifically named after API, 
                 but needed in to support the package
@@ -189,7 +188,7 @@ def buildFolderStructure(config, dbModel):
                 """
                 newFileName = name[0:len(name) - len(templateFileEnding) + 1] + fileEnding
                 oldFilePath = os.path.join(root, name)
-                newFilePath = os.path.join(config['destAbsPath'], relpath[0:-len(name)])
+                newFilePath = os.path.join(config['destAbsPath'], *(relpath[0:-1]))
                 print(
                     "Make General File ::", 
                     name, 
@@ -211,7 +210,7 @@ def buildFolderStructure(config, dbModel):
                 newFileName = name[0:len(name) - len(templateFileEnding) + 1] + fileEnding
                 newFileNameStar = tableNameVarPattern.sub(r'*', newFileName)
                 oldFilePath = os.path.join(root, name)
-                newFolderPath = os.path.join(config['destAbsPath'], relpath[0:-(len(name)+1)])
+                newFolderPath = os.path.join(config['destAbsPath'], *(relpath[0:-1]))
                 print(
                     "Make Table Files  ::",
                     name, 

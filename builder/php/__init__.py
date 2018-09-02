@@ -61,17 +61,17 @@ class PHPTableFileBuilder:
         
         tag_sequence = re.compile(r"\{\{\$([a-zA-Z\_]+)\}\}")
         
-        tags = tag_sequence.findall(newText)
+        search = tag_sequence.search(newText)
 
-        while len(tags) > 0:
-            fullCapture = r'\{\{\$'+tags[0]+r'\}\}'
-            replacement = cls.getReplacementText(tags[0], options, subject)
+        while search is not None:
+            fullCapture = r'\{\{\$'+search.group(1)+r'\}\}'
+            replacement = cls.getReplacementText(search.group(1), options, subject)
             newText = re.sub(
                 fullCapture,
                 replacement.replace("\\", r"\\"), 
                 newText
             )
-            tags = tag_sequence.findall(newText)
+            search = tag_sequence.search(newText)
         return newText
 
     @classmethod
