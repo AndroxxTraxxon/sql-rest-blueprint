@@ -1,5 +1,6 @@
 <?php
 include_once('../autoloader.php');
+$debug = FALSE;
 {{$use_table_resources}}
 $request = explode("/", substr($_SERVER['PATH_INFO'], 1));
 $resource = null;
@@ -21,6 +22,19 @@ if(!in_array("{{$api_name}}\\api\\resources\\Resource", class_parents($resource)
     throw new UnexpectedValueException("$resource must implement {{$api_name}}\\api\\resources\\Resource\n");
 }
 array_shift($request);
-$resource->processRequest($request)->send();
+try{
+    $resource->processRequest($request)->send();
+} catch (Exception $e){
+    if($debug){
+        throw $e;
+    }else{
+        (new Response(
+            500,
+            "Internal Server Error",
+            ["Content-type"=>"text/html"]
+        ))->send();
+    }
+}
+
 
 

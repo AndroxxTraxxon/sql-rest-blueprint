@@ -31,10 +31,6 @@ class MySQLFileParser(AbstractSQLFileParser):
             db.addTable(self.buildTable(*table))
         for table in db.tables.values():
             table.database = db
-            print("Table {0} put in database {1}".format(
-                table.name,
-                db.name
-            ))
         db.linkReferences()
         return db
 

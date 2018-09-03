@@ -81,18 +81,35 @@ class PHPFileBuilder:
             "table_columns_array": cls.getTableColumnsArray,
             "primary_key": cls.getPrimaryKey,
             "column_names_commas": cls.getTableColumnNamesCommas,
-            "columns_question_marks": cls.getTableColumnsForUpdate,
+            "columns_question_marks": cls.getPreparedQuestionMarks,
             "non_primary_object_properties": cls.getTableObjectModelProperties,
             "column_name_properties": cls.getTableColumnNameProperties,
             "getter_setter_functions": cls.getTableGetterSetterFunctions,
             "non_primary_columns_commas_questions": cls.getTableNonPrimaryColumnsQuestion,
             "use_table_resources": cls.getUseTableResources,
-            "table_resource_switch_case": cls.getTableResourceSwitchCase
+            "table_resource_switch_case": cls.getTableResourceSwitchCase,
+            "table_ref_join": "",
+            "all_table_values": cls.getAllTableValues
         }
         if callable(tableReplaceVars[varKey]):
             return tableReplaceVars[varKey](subject, options)
         else:
             return tableReplaceVars[varKey]
+
+    @classmethod
+    def getAllTableValues(cls, table, options, indent = "            "):
+        output = ""
+        for column in table.columns.values():
+            if len(output) > 0:
+                output += ", \n"+indent
+            if column.keyType is KeyType.PRIMARY:
+                output += "${0}->getId()".format(cls.getTableNameSingle(table, options))
+            else:
+                output += "${0}->{1}".format(
+                    cls.getTableNameSingle(table, options),
+                    cls.makeGetterFunctionSignature(column.name)
+                )
+        return output
 
     @classmethod
     def getTableResourceSwitchCase(cls, dbModel, options, indent = "    "):
@@ -131,8 +148,35 @@ class PHPFileBuilder:
         return output
 
     @classmethod
-    def getTableGetterSetterFunctions(cls, table, options = None, indent=""):
-        return "/* getter and setter functions go here. */"
+    def getFunctionName(cls, prefix, varName):
+        words = varName.split('_')
+        for i in range(len(words)):
+            words[i] = words[i].capitalize()
+        words.insert(0, prefix)
+        return "".join(words)
+
+    @classmethod
+    def makeGetterFunctionSignature(cls, varName):
+        return cls.getFunctionName("get", varName) + "()"
+
+    @classmethod
+    def makeSetterFunctionSignature(cls, varName):
+        return cls.getFunctionName("set", varName) + "(${0})".format(varName)
+
+    @classmethod
+    def getTableGetterSetterFunctions(cls, table, options = None, indent="    "):
+        output = "\n"
+        for column in table.columns.values():
+            if column.keyType is not KeyType.PRIMARY:
+                output += "{0}public function {1}\n".format(indent, cls.makeGetterFunctionSignature(column.name) + "{")
+                output += "{0}    return $this->{1};\n".format(indent, column.name)
+                output += "{0}\n\n".format(indent + "}")
+
+                output += "{0}public function {1}\n".format(indent, cls.makeSetterFunctionSignature(column.name) + "{")
+                output += "{0}    $this->{1} = ${1};\n".format(indent, column.name)
+                output += "{0}\n\n".format(indent + "}")
+        
+        return output[0:-1]
 
     @classmethod
     def getTableColumnNameProperties(cls, table, options = None, indent = "    "):
@@ -146,19 +190,20 @@ class PHPFileBuilder:
         output = ""
         for column in table.columns.values():
             if column.keyType != KeyType.PRIMARY:
-                if len(output) > 0:
-                    output += "\n{0}".format(indent)
-                output += "${0},".format(column.name)
+                output += "${0}->{1},\n{2}".format(
+                    cls.getTableNameSingle(table, options),
+                    cls.makeGetterFunctionSignature(column.name),
+                    indent
+                )
         return output
 
     @classmethod
-    def getTableColumnsForUpdate(cls, table, options = None, indent = "        "):
+    def getPreparedQuestionMarks(cls, table, options = None, indent = "        "):
         output = ""
         for column in table.columns.values():
-            if column.keyType != KeyType.PRIMARY:
-                if len(output) > 0:
-                    output += ",\n"+indent
-                output += column.name
+            if len(output) > 0:
+                output += ", "
+            output += "?"
         return output
 
     @classmethod
@@ -172,9 +217,7 @@ class PHPFileBuilder:
 
     @classmethod
     def getPrimaryKey(cls, table, options = None):
-        for column in table.columns.values():
-            if column.keyType == KeyType.PRIMARY:
-                return column.name
+        return table.primaryKey().name
 
     @classmethod
     def getTableColumnsArray(cls, table, options = None):

@@ -30,7 +30,9 @@ class {{$table_name_caps}}DAO{
         $sql .= implode(" AND ", $conditions);
         $conn = $this->getConnection();
         if($stmt = $conn->prepare($sql)){
-            $stmt->execute($params);
+            if(!$stmt->execute($params)){
+                throw new Exception($stmt->errorInfo());
+            }
             $result = $stmt->fetchAll(PDO::FETCH_CLASS, "{{$api_name}}\\api\\data\\models\\{{$table_name_single_caps}}");
             return $result;
         }else{
@@ -47,7 +49,9 @@ class {{$table_name_caps}}DAO{
             $conn = $this->getConnection();
             $sql = "SELECT * FROM {{$table_name}}";
             $stmt = $conn->prepare($sql);
-            $stmt->execute();
+            if(!$stmt->execute()){
+                throw new Exception($stmt->errorInfo());
+            }
             $entity = $stmt->fetchAll(PDO::FETCH_CLASS, "{{$api_name}}\\api\\data\\models\\{{$table_name_single_caps}}");
             
         }catch(Exception $e){
@@ -61,7 +65,9 @@ class {{$table_name_caps}}DAO{
             $conn = $this->getConnection();
             $sql = "SELECT * FROM {{$table_name}} WHERE {{$primary_key}} = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute(array($id));
+            if(!$stmt->execute(array($id))){
+                throw new Exception($stmt->errorInfo());
+            }
             $entity = $stmt->fetchAll(PDO::FETCH_CLASS, "{{$api_name}}\\api\\data\\models\\{{$table_name_single_caps}}");
 
         }catch(Exception $e){
@@ -82,16 +88,16 @@ class {{$table_name_caps}}DAO{
         ) 
         VALUES ({{$columns_question_marks}})";
         $values = [
-            ${{$table_name_single}}->getId()."",
-            ${{$table_name_single}}->getName()."",
-            ${{$table_name_single}}->getEmail().""
+            {{$all_table_values}}
         ];
         while(!$insert_success){
             if(!$first_try){
                 ${{$table_name_single}}->newId();
             }
             if($stmt = $conn->prepare($sql)){
-                $stmt->execute($values);
+                if(!$stmt->execute($values)){
+                    throw new Exception($stmt->errorInfo());
+                }
                 $insert_success = true; 
             }else{
                 return [
@@ -113,12 +119,13 @@ class {{$table_name_caps}}DAO{
         WHERE {{$primary_key}} = ?";
         
         $values = [
-            {{$non_primary_object_properties}}
-            $id.""
+            {{$non_primary_object_properties}}$id.""
         ];
         $conn = $this->getConnection();
         if($stmt = $conn->prepare($sql)){
-            $stmt->execute($values);
+            if(!$stmt->execute($values)){
+                throw new Exception($stmt->errorInfo());
+            }
 
         }else{
             return [
@@ -136,7 +143,9 @@ class {{$table_name_caps}}DAO{
             $conn = $this->getConnection();
             $sql = "DELETE FROM {{$table_name}} WHERE {{$primary_key}} = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute(array($id));
+            if(!$stmt->execute(array($id))){
+                throw new Exception($stmt->errorInfo());
+            }
         }catch(Exception $e){
             // var_dump(get_class($e)."::".$e->getMessage());
         }
