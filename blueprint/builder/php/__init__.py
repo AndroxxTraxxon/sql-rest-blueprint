@@ -1,14 +1,9 @@
 import re
 import os
 
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.join(os.path.dirname(os.path.dirname(currentdir)), 'db')
-sys.path.insert(0,parentdir) 
+from blueprint.db.structure import KeyType
 
-from structure import KeyType
-
-class PHPTableFileBuilder:
+class PHPFileBuilder:
 
     @classmethod
     def buildAPIFile(cls, src, destFolder, options, dbModel):
@@ -120,7 +115,7 @@ class PHPTableFileBuilder:
             if not table.isRelationalTable:
                 output += "use {0}\\api\\resources\\{1}Resource;\n".format(
                     options['apiName'],
-                    cls.getTableName(table, options)
+                    cls.getTableNameCaps(table, options)
                 )
         return output
             
