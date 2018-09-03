@@ -12,7 +12,7 @@ class {{$table_name_caps}}DAO{
         if(sizeof($constraints) == 0){
             throw new IllegalArgumentException("Query must specify constraints.");
         }
-        $sql = "SELECT * FROM {{$table_name}} WHERE ";
+        $sql = "SELECT A.* FROM {{$table_name}} A {{$table_ref_join}} WHERE ";
         $conditions = [];
         $params = [];
         $pattern = "";
