@@ -19,7 +19,7 @@ class Column:
         self.table = None
 
     def setReference(self, table, column):
-        self.reference = (table, column)
+        self.reference = self.table.database.tables[table].columns[column]
 
     def __str__(self):
         return "Column '{0}': {1}".format(
@@ -61,7 +61,6 @@ class Table:
                 column.keyType = KeyType.COMPOSITE_PRIMARY
             elif isinstance(primaryKey, list):
                 column.keyType = KeyType.COMPOSITE_PRIMARY
-        del(primaryKey)
     
     def foreignKeys(self):
         """ 
@@ -139,9 +138,17 @@ class Database:
 
     def linkReferences(self):
         for table in self.tables.values():
+            # print("Linking Refs in {0}.{1} ...".format(table.database.name, table.name))
             for col, tableName, columnName in table.foreignKeys():
                 col.reference = self.tables[tableName].columns[columnName]
-        print("Linking Refs in {0}({1})".format(table.database.name, table.name))
+                # print("Linking {0}.{1} => {2}.{3}".format(
+                #     col.table.name,
+                #     col.name,
+                #     col.reference.table.name,
+                #     col.reference.name
+                # ))
+            print()
+        
 
     def __str__(self):
         output = "Database '{0}': [\n".format(self.name)

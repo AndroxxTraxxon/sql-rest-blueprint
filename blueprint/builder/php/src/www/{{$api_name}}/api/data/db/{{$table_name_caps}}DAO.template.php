@@ -2,6 +2,7 @@
 namespace {{$api_name}}\api\data\db;
 use {{$api_name}}\api\data\models\{{$table_name_single_caps}};
 use \PDO;
+use \Exception;
 class {{$table_name_caps}}DAO{
 
     private function getConnection(){
@@ -12,7 +13,7 @@ class {{$table_name_caps}}DAO{
         if(sizeof($constraints) == 0){
             throw new IllegalArgumentException("Query must specify constraints.");
         }
-        $sql = "SELECT A.* FROM {{$table_name}} A {{$table_ref_join}} WHERE ";
+        $sql = "SELECT A.* FROM {{$table_name}} A WHERE ";
         $conditions = [];
         $params = [];
         $pattern = "";
@@ -137,6 +138,7 @@ class {{$table_name_caps}}DAO{
         ${{$table_name_single}}->setId($id);             
         return ${{$table_name_single}};
     }
+{{$fetch_relational_object_functions}}
 
     public function delete{{$table_name_single_caps}}(string $id){
         try{

@@ -1,7 +1,17 @@
 import sys, os, pprint, shutil, re, glob, copy
 
 def generalUsage():
-    print("Here's some useful usage docs!")
+    print("""
+    Here's how to use the SQL Blueprint generator:
+    Call the python module: 
+    python -m blueprint 
+    Here are the options:
+
+    -l              <language>              (required)
+    -s              <source dir>            (optional: assumes cwd if not used)
+    -d --dest       <destination dir>       (optional: assumes cwd if not used)            
+    -v --verbose                            (optional: default FALSE)
+    -n --name       <api name>              (optional: assumes DB name if not used)""")
 
 def usage(cmd:str = None):
     if cmd is None:
@@ -54,6 +64,7 @@ class BlueprintHelper:
         self.config = copy.deepcopy(self.defaults)
         if len(args) == 0:
             print("No arguments found. Continuing with defaults...")
+            self.validateConfig()
             return
         if args[0] == 'help':
             usage()
@@ -89,18 +100,31 @@ class BlueprintHelper:
             else:
                 print('Unknown argument: {0}'.format(currentArg))
                 usage()
-        
         self.validateConfig()
+
 
     def validateConfig(self):
         """ Verify that the configs are enough to generate a file. """
         # language
-        if self.config['lang'] not in self.config['languages'].keys():
+        try:
+            self.config['lang']
+        except:
+            raise ValueError("""No Language has been defined. Please define language as follows:
+            $ python -m bluepring -l <language>""")
+
+        if (
+            self.config['lang'] not in self.config['languages'].keys() or
+            self.config['lang'] is None
+        ):
             print("Appropriate language not specified")
             print("Acceptable languages are as follows...")
             pprint.pprint(self.config['fileExtensions'])
             raise ValueError("Unrecognized language: {0}".format(self.config['lang']))
 
+        self.config['libroot'] = os.path.dirname(os.path.realpath(__file__))
+        self.config['templateRoot'] = os.path.join(self.config['libroot'],'builder',self.config['lang'],'src')
+
+        
     def findSource(self):
         if self.config['srcType'] == 'file':
             self.findSourceFile()
@@ -144,9 +168,7 @@ class BlueprintHelper:
         if self.config['dest']['rel'] == self.defaults['dest']['rel']: 
             print("Overriding Default rel Destination to `{0}`".format(self.db.name))
             self.config['dest']['rel'] = self.db.name
-        self.config['libroot'] = os.path.dirname(os.path.realpath(__file__))
         self.config['dest']['abs'] = os.path.join(self.config['cwd'],self.config['dest']['rel'])
-        self.config['templateRoot'] = os.path.join(self.config['libroot'],'builder',self.config['lang'],'src')
     
     def getSQLFileParser(self):
         if isinstance (self.config['dbType'], str):
@@ -259,9 +281,7 @@ class BlueprintHelper:
                     newFolderPath = os.path.join(self.config['dest']['abs'], *(rel[0:-1]))
                     print(
                         "Make Table Files  ::",
-                        name, 
-                        '\n             --->', 
-                        os.path.join(newFolderPath, newFileNameStar)
+                        name
                     )
                     self.processTableFile(
                         oldFilePath,
